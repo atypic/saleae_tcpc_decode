@@ -1,0 +1,13 @@
+{
+  "name": "TCPC-over-I2C",
+  "apiVersion": "1.0.0",
+  "author": "Odd Rune",
+  "version": "0.0.1",
+  "description": "",
+  "extensions": {
+    "TCPC-I2C": {
+      "type": "HighLevelAnalyzer",
+      "entryPoint": "tcpc.TCPC"
+    }
+  }
+}
