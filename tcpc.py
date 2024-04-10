@@ -1,4 +1,3 @@
-# High Level Analyzer
 # For more information and documentation, please go to https://support.saleae.com/extensions/high-level-analyzer-extensions
 
 from saleae.analyzers import HighLevelAnalyzer, AnalyzerFrame, StringSetting, NumberSetting, ChoicesSetting
@@ -28,14 +27,9 @@ extra_decode_regs = ["FAULT_STATUS",
                      "TCPC_CONTROL",
                      "EXT_GPIO_CONFIG",
                      "EXT_GPIO_CONTROL",
-                     "COMMAND"
+                     "COMMAND",
+                     "VBUS_VOLTAGE",
                      ]
-
-#0 is highest level, prints all.
-#1 does not print raw transactions.
-def print_filtered(message, verbosity=0):
-    if verbosity == 0:
-        print(message)
 
 dhaul_addrs = {
     0x50: "PORT 1",
@@ -89,47 +83,65 @@ def role_control_rp_value(bits):
     elif bits == 0b11:
         return "Reserved"
 
-
 def print_role_control(byte, color):
-    print(f"{color}ROLE CONTROL:")
-    print(f"{color}    CC1: {role_control_cc_decode(parse_out_bits(byte, 0, 1))}")
-    print(f"{color}    CC2: {role_control_cc_decode(parse_out_bits(byte, 2, 3))}")
-    print(f"{color}    RPVAL: {role_control_rp_value(parse_out_bits(byte, 4, 5))}")
-    print(f"{color}    DRP enabled: {parse_out_bits(byte, 6, 6)}")
+    lines = [
+    f"{color}ROLE CONTROL:",
+    f"{color}    CC1: {role_control_cc_decode(parse_out_bits(byte, 0, 1))}",
+    f"{color}    CC2: {role_control_cc_decode(parse_out_bits(byte, 2, 3))}",
+    f"{color}    RPVAL: {role_control_rp_value(parse_out_bits(byte, 4, 5))}",
+    f"{color}    DRP enabled: {parse_out_bits(byte, 6, 6)}"
+    ]
+
+    return lines 
 
 def print_tcpc_control(byte, color):
-    print(f"{color}TCPC Control Message")
-    print(f"{color}    Plug orientation:     {parse_out_bits(byte, 0, 0)}")
-    print(f"{color}    BIST Test mode:       {parse_out_bits(byte, 1, 1)}")
-    print(f"{color}    I2C Clock stretching: {parse_out_bits(byte, 2, 3)}")
-    print(f"{color}    Debug acc control:    {parse_out_bits(byte, 4, 4)}")
-    print(f"{color}    Enable WDOG timer:    {parse_out_bits(byte, 5, 5)}")
-    print(f"{color}    Enable L4C Alert:     {parse_out_bits(byte, 6, 6)}")
-    print(f"{color}    Enable SMBus PEC:     {parse_out_bits(byte, 7, 7)}")
+    lines = [
+    f"{color}TCPC Control Message",
+    f"{color}    Plug orientation:     {parse_out_bits(byte, 0, 0)}",
+    f"{color}    BIST Test mode:       {parse_out_bits(byte, 1, 1)}",
+    f"{color}    I2C Clock stretching: {parse_out_bits(byte, 2, 3)}",
+    f"{color}    Debug acc control:    {parse_out_bits(byte, 4, 4)}",
+    f"{color}    Enable WDOG timer:    {parse_out_bits(byte, 5, 5)}",
+    f"{color}    Enable L4C Alert:     {parse_out_bits(byte, 6, 6)}",
+    f"{color}    Enable SMBus PEC:     {parse_out_bits(byte, 7, 7)}"
+    ]
+    return lines
 
 def print_power_control(byte, color):
-    print(f"{color}Power Control Message")
-    print(f"{color}    Enable VCONN:          {parse_out_bits(byte, 0, 0)}")
-    print(f"{color}    VCONN Pow support:     {parse_out_bits(byte, 1, 1)}")
-    print(f"{color}    Force discharge:       {parse_out_bits(byte, 2, 3)}")
-    print(f"{color}    Enable bleed discharge:{parse_out_bits(byte, 4, 4)}")
-    print(f"{color}    AutoChargeDisconnect:  {parse_out_bits(byte, 5, 5)}")
-    print(f"{color}    VBUS Voltage monitor:  {parse_out_bits(byte, 6, 6)}")
-    print(f"{color}    Fast role swap enable: {parse_out_bits(byte, 7, 7)}")
+    lines = [
+    f"{color}Power Control Message",
+    f"{color}    Enable VCONN:          {parse_out_bits(byte, 0, 0)}",
+    f"{color}    VCONN Pow support:     {parse_out_bits(byte, 1, 1)}",
+    f"{color}    Force discharge:       {parse_out_bits(byte, 2, 3)}",
+    f"{color}    Enable bleed discharge:{parse_out_bits(byte, 4, 4)}",
+    f"{color}    AutoChargeDisconnect:  {parse_out_bits(byte, 5, 5)}",
+    f"{color}    VBUS Voltage monitor:  {parse_out_bits(byte, 6, 6)}",
+    f"{color}    Fast role swap enable: {parse_out_bits(byte, 7, 7)})"
+                                         ]
+ 
+    return lines
 
 def print_ext_gpio_config(byte, color):
-    print(f"{color}EXT_GPIO_CONFIG")
-    print(f"{color}    Input_current_lim_5V_BUS:    {parse_out_bits(byte, 3,3)}")
-    print(f"{color}    EN_SNK1:                     {parse_out_bits(byte, 4,4)}")
-    print(f"{color}    EN_SRC:                      {parse_out_bits(byte, 5,5)}")
-    print(f"{color}    FRS_EN:                      {parse_out_bits(byte, 6,6)}")
+    lines = [
+    f"{color}EXT_GPIO_CONFIG",
+    f"{color}    Input_current_lim_5V_BUS:    {parse_out_bits(byte, 3,3)}",
+    f"{color}    EN_SNK1:                     {parse_out_bits(byte, 4,4)}",
+    f"{color}    EN_SRC:                      {parse_out_bits(byte, 5,5)}",
+    f"{color}    FRS_EN:                      {parse_out_bits(byte, 6,6)}"
+    ]
+ 
+    return lines
 
 def print_ext_gpio_control(byte, color):
-    print(f"{color}EXT_CPIO_CONTROL")
-    print(f"{color}    Drive ILIM_5V_VBUS:          {parse_out_bits(byte, 3,3)}")
-    print(f"{color}    Drive EN_SNK1:               {parse_out_bits(byte, 4,4)}")
-    print(f"{color}    Drive EN_SRC:                {parse_out_bits(byte, 5,5)}")
-    print(f"{color}    Drive FRS_EN:                {parse_out_bits(byte, 6,6)}")
+    lines = [
+    f"{color}EXT_CPIO_CONTROL",
+    f"{color}    Drive ILIM_5V_VBUS:          {parse_out_bits(byte, 3,3)}",
+    f"{color}    Drive EN_SNK1:               {parse_out_bits(byte, 4,4)}",
+    f"{color}    Drive EN_SRC:                {parse_out_bits(byte, 5,5)}",
+    f"{color}    Drive FRS_EN:                {parse_out_bits(byte, 6,6)}"
+    ]
+ 
+    return lines
 
 def sop_ctrl_msg_type(bits):
     msg = {
@@ -194,7 +206,8 @@ def print_sop_message(bytes, color):
     message_id = parse_out_bits(bytes[1], 1, 3)
     num_do = parse_out_bits(bytes[1], 4, 6)
     extended = parse_out_bits(bytes[1], 7, 7)
-    
+
+    lines = [] 
     if port_power_role == 0:
         pr = 'Sink (eats power)'
     else:
@@ -205,15 +218,17 @@ def print_sop_message(bytes, color):
         dr = 'DFP (HOST)'
  
     if num_do == 0:
-        print(f"{color}    CONTROL Message Type: {sop_ctrl_msg_type(message_type)}")
+        lines.append(f"{color}    CONTROL Message Type: {sop_ctrl_msg_type(message_type)}")
     else:
-        print(f"{color}    DATA Message Type: {sop_data_msg_type(message_type)}")
+        lines.append(f"{color}    DATA Message Type: {sop_data_msg_type(message_type)}")
         
-    print(f"{color}    Power Role: {pr}")
-    print(f"{color}    Data Role: {dr}") 
-    print(f"{color}    Revision: {revision}")
-    print(f"{color}    Data objects: {num_do}")
-    print(f"{color}    Message ID: {message_id}")
+    lines.append(f"{color}    Power Role: {pr}")
+    lines.append(f"{color}    Data Role: {dr}") 
+    lines.append(f"{color}    Revision: {revision}")
+    lines.append(f"{color}    Data objects: {num_do}")
+    lines.append(f"{color}    Message ID: {message_id}")
+ 
+    return lines
 
 def print_alert(byte, color):
     bitfields = [
@@ -233,14 +248,17 @@ def print_alert(byte, color):
         "Extended status",
         "Alert Extended",
         "Vendor Defined Extended"]
-    print(f"{color}ALERT")
+    lines = []
+    lines.append(f"{color}ALERT")
     for i in range(8):
         bit = (byte[0] >> i) & 1
-        print(f"    {color}{i}: {bit} - {bitfields[i]}")
+        lines.append(f"    {color}{i}: {bit} - {bitfields[i]}")
     for i in range(8):
         bit = (byte[1] >> i) & 1
-        print(f"    {color}{i}: {bit} - {bitfields[i + 8]}")
-
+        lines.append(f"    {color}{i}: {bit} - {bitfields[i + 8]}")
+    
+ 
+    return lines
 
 
 def print_power_status(byte, color):
@@ -254,12 +272,13 @@ def print_power_status(byte, color):
         "TCPC Init Status",
         "Debug Accessory Connected",
     ]
-    print("\n")
-    print(f"{color}POWER STATUS REPORT:")
+    lines = []
+    lines.append(f"{color}POWER STATUS REPORT:")
     for i in range(8):
         bit = (byte >> i) & 1
-        print(f"    {color} {i}: {bit} - {bitfields[i]}")
-    print('\n')
+        lines.append(f"    {color} {i}: {bit} - {bitfields[i]}")
+    
+    return lines
 
 
 def cc_state_bits(bits):
@@ -274,31 +293,38 @@ def cc_state_bits(bits):
 
 
 def print_cc_status(byte, color):
-    print(f"{color}CC STATUS REPORT:")
-    print(f"{color}    CC1: {cc_state_bits(parse_out_bits(byte, 0, 1))}")
-    print(f"{color}    CC2: {cc_state_bits(parse_out_bits(byte, 2, 3))}")
-    print(f"{color}    ConnectResult: {parse_out_bits(byte, 4, 4)}")
-    print(f"{color}    Looking4Conn : {parse_out_bits(byte, 5, 5)}")
+    lines = []
+    lines.append(f"{color}CC STATUS REPORT:")
+    lines.append(f"{color}    CC1: {cc_state_bits(parse_out_bits(byte, 0, 1))}")
+    lines.append(f"{color}    CC2: {cc_state_bits(parse_out_bits(byte, 2, 3))}")
+    lines.append(f"{color}    ConnectResult: {parse_out_bits(byte, 4, 4)}")
+    lines.append(f"{color}    Looking4Conn : {parse_out_bits(byte, 5, 5)}")
+
+    return lines
 
 def print_command(byte, color):
-    print(f"{color}COMMAND")
-    if   byte == 0b00010001: print(f"{color}  WakeI2C")
-    elif byte == 0b00100010: print(f"{color}  DisableVBUSDetect")
-    elif byte == 0b00110011: print(f"{color}  EnableVBUSDetect")
-    elif byte == 0b01000100: print(f"{color}  DisableSinkVBUS")
-    elif byte == 0b01010101: print(f"{color}  SinkVBUS")
-    elif byte == 0b01100110: print(f"{color}  DisableSourceVBUS")
-    elif byte == 0b01110111: print(f"{color}  SourceVBUSDefaultVoltage")
-    elif byte == 0b10001000: print(f"{color}  SourceVBUSHighVoltage")
-    elif byte == 0b10011001: print(f"{color}  Look4Connection")
-    elif byte == 0b10101010: print(f"{color}  RxOneMore")
-    elif byte == 0b11001100: print(f"{color}  SendFRSwapSignal")
-    elif byte == 0b11011101: print(f"{color}  ResetTransmitBuffer")
-    elif byte == 0b11101110: print(f"{color}  ResetReceiveBuffer")
-    elif byte == 0b11111111: print(f"{color}  I2CIdle")
+    lines = []
+    lines.append(f"{color}COMMAND")
+    if   byte == 0b00010001: lines.append(f"{color}  WakeI2C")
+    elif byte == 0b00100010: lines.append(f"{color}  DisableVBUSDetect")
+    elif byte == 0b00110011: lines.append(f"{color}  EnableVBUSDetect")
+    elif byte == 0b01000100: lines.append(f"{color}  DisableSinkVBUS")
+    elif byte == 0b01010101: lines.append(f"{color}  SinkVBUS")
+    elif byte == 0b01100110: lines.append(f"{color}  DisableSourceVBUS")
+    elif byte == 0b01110111: lines.append(f"{color}  SourceVBUSDefaultVoltage")
+    elif byte == 0b10001000: lines.append(f"{color}  SourceVBUSHighVoltage")
+    elif byte == 0b10011001: lines.append(f"{color}  Look4Connection")
+    elif byte == 0b10101010: lines.append(f"{color}  RxOneMore")
+    elif byte == 0b11001100: lines.append(f"{color}  SendFRSwapSignal")
+    elif byte == 0b11011101: lines.append(f"{color}  ResetTransmitBuffer")
+    elif byte == 0b11101110: lines.append(f"{color}  ResetReceiveBuffer")
+    elif byte == 0b11111111: lines.append(f"{color}  I2CIdle")
+    else: lines.append(f"{color} Unknown command {byte}")
+ 
+    return lines
 
 
-def decode_vbus_voltage(bytes):
+def print_vbus_voltage(bytes, color):
     bits_0_9 = (bytes[0] & 0xFF) | ((bytes[1] & 0x3) << 8)
     bits_10_11 = (bytes[1] >> 2) & 0x3
 
@@ -310,58 +336,65 @@ def decode_vbus_voltage(bytes):
         scale_factor = 1
 
     result = (bits_0_9 * (25/1000.)) * (scale_factor)
-    return result
+
+    lines = []
+    lines.append(f"{color}    VBUS voltage {result}")
+
+    return lines
 
 def print_fault_status(byte, color):
-    print(f"{color}FAULT STATUS:")
-    print(f"{color}   I2C Interface error: {parse_out_bits(byte, 0, 0)}")
-    print(f"{color}    VCON over current fault: {parse_out_bits(byte, 1, 1)}")
-    print(f"{color}    Internal or External VBUS Over Voltage Protection Fault: {parse_out_bits(byte, 2, 2)}")
-    print(f"{color}    Internal or External VBUS Over Current Protection Fault: {parse_out_bits(byte, 3, 3)}")
-    print(f"{color}    Force Discharge Failed: {parse_out_bits(byte, 4, 4)}")
-    print(f"{color}    Auto Discharge Failed: {parse_out_bits(byte, 5, 5)}")
-    print(f"{color}    Force off VBUS Status: {parse_out_bits(byte, 6, 6)}")
-    print(f"{color}    All registers reset to default: {parse_out_bits(byte, 7, 7)}")
+    lines = []
+    lines.append(f"{color}FAULT STATUS:")
+    lines.append(f"{color}   I2C Interface error: {parse_out_bits(byte, 0, 0)}")
+    lines.append(f"{color}    VCON over current fault: {parse_out_bits(byte, 1, 1)}")
+    lines.append(f"{color}    Internal or External VBUS Over Voltage Protection Fault: {parse_out_bits(byte, 2, 2)}")
+    lines.append(f"{color}    Internal or External VBUS Over Current Protection Fault: {parse_out_bits(byte, 3, 3)}")
+    lines.append(f"{color}    Force Discharge Failed: {parse_out_bits(byte, 4, 4)}")
+    lines.append(f"{color}    Auto Discharge Failed: {parse_out_bits(byte, 5, 5)}")
+    lines.append(f"{color}    Force off VBUS Status: {parse_out_bits(byte, 6, 6)}")
+    lines.append(f"{color}    All registers reset to default: {parse_out_bits(byte, 7, 7)}")
+ 
+    return lines
 
 def print_transaction(time, port, reg, data, isread, write_raw):
+    l = []
     if port in filter_ports:
         if write_raw and isread:
-            print(f"{time} : {port} READ @ {reg_to_name(reg)}: {data}")
+            l.append(f"{time} : {port} READ @ {reg_to_name(reg)}: {data}")
         elif write_raw and not isread:
-            print(f"{time} : {port} WRITE @ {reg_to_name(reg)}: {data}")
+            l.append(f"{time} : {port} WRITE @ {reg_to_name(reg)}: {data}")
         
         if not (reg in ptn5110_regs.keys()):  
-            print("Wops, unknown register")
-            return 
+            l.append("Wops, unknown register")
         
         if ptn5110_regs[reg] in extra_decode_regs:
             if ptn5110_regs[reg] == "FAULT_STATUS":
-                print_fault_status(data[0], bcolors.FAIL)
+                l += print_fault_status(data[0], bcolors.FAIL)
             elif ptn5110_regs[reg] == "ALERT":
-                print_alert(data, bcolors.WARNING)
+                l += print_alert(data, bcolors.WARNING)
             elif ptn5110_regs[reg] == "READABLE_BYTE_COUNT":
-                print_sop_message(data[2:], bcolors.OKCYAN)
+                l += print_sop_message(data[2:], bcolors.OKCYAN)
             elif ptn5110_regs[reg] == "I2C_WRITE_BYTE_COUNT":
-                print_sop_message(data[1:], bcolors.OKGREEN)
+                l += print_sop_message(data[1:], bcolors.OKGREEN)
             elif ptn5110_regs[reg] == "POWER_STATUS":
-                print_power_status(data[0], bcolors.PINK)
+                l += print_power_status(data[0], bcolors.PINK)
             elif ptn5110_regs[reg] == "CC_STATUS":
-                print_cc_status(data[0], bcolors.PINK)
+                l += print_cc_status(data[0], bcolors.PINK)
             elif ptn5110_regs[reg] == "ROLE_CONTROL":
-                print_role_control(data[0], bcolors.OKCYAN)
+                l += print_role_control(data[0], bcolors.OKCYAN)
             elif ptn5110_regs[reg] == "POWER_CONTROL":
-                print_power_control(data[0], bcolors.OKCYAN)
+                l += print_power_control(data[0], bcolors.OKCYAN)
             elif ptn5110_regs[reg] == "TCPC_CONTROL":
-                print_tcpc_control(data[0], bcolors.OKCYAN)
+                l += print_tcpc_control(data[0], bcolors.OKCYAN)
             elif ptn5110_regs[reg] == "EXT_GPIO_CONFIG":
-                print_ext_gpio_config(data[0], bcolors.OKCYAN)
+                l += print_ext_gpio_config(data[0], bcolors.OKCYAN)
             elif ptn5110_regs[reg] == "EXT_GPIO_CONTROL":
-                print_ext_gpio_control(data[0], bcolors.OKCYAN)
+                l += print_ext_gpio_control(data[0], bcolors.OKCYAN)
             elif ptn5110_regs[reg] == "COMMAND":
-                print_command(data[0], bcolors.FAIL)
-
-
-
+                l += print_command(data[0], bcolors.FAIL)
+            elif ptn5110_regs[reg] == "VBUS_VOLTAGE":
+                l += print_vbus_voltage(data, bcolors.OKGREEN)
+    return l
 
 
 ptn5110_regs = {
@@ -514,8 +547,8 @@ class TCPC(HighLevelAnalyzer):
                 self._current_frame_data_bytes.append(databyte)
                 byteshow = hex(databyte)
                 
-                print_filtered(
-                    f"  READ @ {reg_to_name(self._current_regaddr)}: {byteshow}", verbosity=1)
+                #print_filtered(
+                #    f"  READ @ {reg_to_name(self._current_regaddr)}: {byteshow}", verbosity=1)
             else:
                 # Second byte in a write transaction is always register offset
                 typeof = 'write_reg'
@@ -526,8 +559,8 @@ class TCPC(HighLevelAnalyzer):
                     # This is the written byte value.
                     byteshow = f"{hex(databyte)}"
                     self._current_frame_data_bytes.append(databyte)
-                    print_filtered(
-                        f"  WRITE @ {reg_to_name(self._current_regaddr)}: {byteshow}", verbosity=1)
+                    #print_filtered(
+                    #    f"  WRITE @ {reg_to_name(self._current_regaddr)}: {byteshow}", verbosity=1)
 
         # Address type. 
         if frame.type == 'address':
@@ -547,13 +580,14 @@ class TCPC(HighLevelAnalyzer):
         if frame.type == 'stop':
             relative_time = float(frame.start_time - self._analysis_start_time)
             typeof = 'framestop'
-            print_transaction(relative_time, self._current_port, self._current_regaddr, self._current_frame_data_bytes, self._isread, True)
-            
+            l = print_transaction(relative_time, self._current_port, self._current_regaddr, self._current_frame_data_bytes, self._isread, True)
+            for line in l:
+                print(line) 
             self._isread = False
             self._current_trans_num_bytes = 0
             self._current_frame_data_bytes = []
 
         # Return the data frame itself
         return AnalyzerFrame(typeof, frame.start_time, frame.end_time, {
-            'tcpc_byte': byteshow
+            'tcpc_byte': byteshow,
         })
