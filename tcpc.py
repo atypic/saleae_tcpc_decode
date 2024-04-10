@@ -323,12 +323,12 @@ def print_fault_status(byte, color):
     print(f"{color}    Force off VBUS Status: {parse_out_bits(byte, 6, 6)}")
     print(f"{color}    All registers reset to default: {parse_out_bits(byte, 7, 7)}")
 
-def print_transaction(port, reg, data, isread, write_raw):
+def print_transaction(time, port, reg, data, isread, write_raw):
     if port in filter_ports:
         if write_raw and isread:
-            print(f"{port} READ @ {reg_to_name(reg)}: {data}")
+            print(f"{time} : {port} READ @ {reg_to_name(reg)}: {data}")
         elif write_raw and not isread:
-            print(f"{port} WRITE @ {reg_to_name(reg)}: {data}")
+            print(f"{time} : {port} WRITE @ {reg_to_name(reg)}: {data}")
         
         if not (reg in ptn5110_regs.keys()):  
             print("Wops, unknown register")
@@ -475,11 +475,12 @@ class TCPC(HighLevelAnalyzer):
 
         Settings can be accessed using the same name used above.
         '''
-
+        self._analysis_start_time = None
         self._current_trans_num_bytes = 0
         self._current_frame_data_bytes = 0
         self._current_regaddr = 0
         self._isread = False
+        self._current_relative_time_s = 0
 
         #print("Settings:", self.my_string_setting,
         #      self.my_number_setting, self.my_choices_setting)
@@ -498,6 +499,9 @@ class TCPC(HighLevelAnalyzer):
         if frame.type == 'start':
             self._current_trans_num_bytes = 0
             self._current_frame_data_bytes = []
+            if self._analysis_start_time == None:
+                self._analysis_start_time = frame.start_time
+            #First measurement to set the start time
 
         # This can either be a register offset byte or a data byte (for a read)
         if frame.type == 'data':
@@ -541,8 +545,9 @@ class TCPC(HighLevelAnalyzer):
 #                print(f"Transaction started @ {byteshow}")
 
         if frame.type == 'stop':
+            relative_time = float(frame.start_time - self._analysis_start_time)
             typeof = 'framestop'
-            print_transaction(self._current_port, self._current_regaddr, self._current_frame_data_bytes, self._isread, True)
+            print_transaction(relative_time, self._current_port, self._current_regaddr, self._current_frame_data_bytes, self._isread, True)
             
             self._isread = False
             self._current_trans_num_bytes = 0
